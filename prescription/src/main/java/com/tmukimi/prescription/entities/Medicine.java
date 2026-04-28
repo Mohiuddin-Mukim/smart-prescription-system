@@ -1,42 +1,38 @@
 package com.tmukimi.prescription.entities;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
+import lombok.*;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "medicines", indexes = {@Index(name = "idx_generic", columnList = "generic_name")})
-@Getter
-@Setter
+@Table(name = "medicines")
+@Getter @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Medicine {
+
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "brand_id")
     private Long id;
 
     @Column(nullable = false)
     private String brandName;
 
-    @Column(nullable = false)
-    private String genericName;
-
-    private String medicineType;
+    @Column(name = "medicine_type")
+    private String type; // allopathic/herbal
+    private String dosageForm; // Tablet/Syrup
     private String strength;
 
-    @Column(columnDefinition = "TEXT")
-    private String sideEffects;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "generic_id")
+    private Generic generic;
 
-    @Column(columnDefinition = "TEXT")
-    private String indications;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "manufacturer_id")
+    private Manufacturer manufacturer;
 
-    @CreationTimestamp
-    private LocalDateTime createdAt;
+    @Column(updatable = false)
+    private LocalDateTime createdAt = LocalDateTime.now();
 
-    @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private LocalDateTime updatedAt = LocalDateTime.now();
 }
