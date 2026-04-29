@@ -56,8 +56,11 @@ public class SecurityConfig {
                 .cors(Customizer.withDefaults()) // CORS এনাবল করা
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/v1/auth/**", "/index.html", "/login.html", "/signup.html", "/static/**").permitAll()
+                        .requestMatchers("/api/v1/auth/**", "/api/v1/medicines/**").permitAll()
+                        .requestMatchers("/index.html", "/login.html", "/signup.html", "/search.html", "/medicine-info.html").permitAll()
+                        .requestMatchers("/static/**", "/js/**", "/css/**", "/images/**").permitAll()
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);

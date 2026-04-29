@@ -39,11 +39,9 @@ public class JwtUtil {
 
     public boolean isTokenValid(String token) {
         try {
-            // টোকেনটি পার্স করতে পারলে এবং এক্সপায়ার না হলে এটি ভ্যালিড
             Claims claims = extractAllClaims(token);
             return !claims.getExpiration().before(new Date());
         } catch (Exception e) {
-            // টোকেন টেম্পারড হলে বা এক্সপায়ার হলে এখানে এক্সেপশন আসবে
             return false;
         }
     }

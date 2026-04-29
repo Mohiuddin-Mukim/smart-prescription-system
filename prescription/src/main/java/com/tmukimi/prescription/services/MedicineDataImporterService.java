@@ -105,7 +105,7 @@ public class MedicineDataImporterService {
                 new InputStreamReader(new ClassPathResource("data/medicine.csv").getInputStream()))) {
 
             String[] line;
-            reader.readNext(); // skip header
+            reader.readNext();
 
             List<Medicine> list = new ArrayList<>();
 
@@ -121,7 +121,6 @@ public class MedicineDataImporterService {
                     m.setDosageForm(line[4].trim());
                     m.setStrength(line[6].trim());
 
-                    // ❗ FIX: এখানে ID না, name দিয়ে খুঁজতে হবে
                     String genericName = line[5].trim();
                     String manufacturerName = line[7].trim();
 

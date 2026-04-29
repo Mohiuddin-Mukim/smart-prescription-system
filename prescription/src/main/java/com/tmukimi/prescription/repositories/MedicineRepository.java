@@ -12,7 +12,8 @@ import java.util.List;
 @Repository
 public interface MedicineRepository extends JpaRepository<Medicine, Long> {
 
-    // পেশেন্টের সাজেশনের জন্য ব্র্যান্ড নেম দিয়ে সার্চ করার কুয়েরি
-    @Query("SELECT m FROM Medicine m WHERE LOWER(m.brandName) LIKE LOWER(concat(:q, '%'))")
+    @Query("SELECT m FROM Medicine m WHERE " +
+            "LOWER(m.brandName) LIKE LOWER(concat(:q, '%')) OR " +
+            "LOWER(m.generic.genericName) LIKE LOWER(concat(:q, '%'))")
     List<Medicine> findSuggestions(@Param("q") String q, Pageable pageable);
 }

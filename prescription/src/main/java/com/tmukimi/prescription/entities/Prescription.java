@@ -25,7 +25,7 @@ public class Prescription {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore   // ✅ IMPORTANT
+    @JsonIgnore
     private User user;
 
     private String doctorName;

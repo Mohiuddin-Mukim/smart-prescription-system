@@ -19,8 +19,8 @@ public class Medicine {
     private String brandName;
 
     @Column(name = "medicine_type")
-    private String type; // allopathic/herbal
-    private String dosageForm; // Tablet/Syrup
+    private String type;
+    private String dosageForm;
     private String strength;
 
     @ManyToOne(fetch = FetchType.LAZY)
