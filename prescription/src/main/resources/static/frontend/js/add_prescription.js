@@ -11,33 +11,39 @@ function addMedicineRow() {
     const medicineList = document.getElementById('medicine-list');
 
     const html = `
-        <div id="${rowId}" class="medicine-row space-y-4 p-4 border border-blue-50 rounded-2xl bg-blue-50/30 relative mb-4">
+        <div id="${rowId}" class="medicine-row space-y-4 p-6 border border-blue-50 rounded-2xl bg-blue-50/30 relative mb-4">
             <button type="button" onclick="removeRow('${rowId}')" class="absolute top-2 right-4 text-red-400 hover:text-red-600 text-xs font-bold">Remove</button>
             
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div class="md:col-span-2 relative">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="relative">
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Medicine Name</label>
                     <input type="text" placeholder="Search medicine..." 
                            oninput="searchMedicine(this, '${rowId}')"
                            class="med-input w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-400">
-                    
                     <input type="hidden" class="med-id">
-                    
-                    
                     <div class="suggestion-box absolute z-10 w-full bg-white border shadow-xl rounded-b-xl hidden max-h-48 overflow-y-auto"></div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Dosage</label>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Dosage Instruction</label>
                     <select class="med-dosage w-full px-4 py-2 border border-gray-200 rounded-lg outline-none bg-white">
                         <option value="1-0-1">1-0-1 (Twice)</option>
-                        <option value="1-0-1">0-1-1 (Twice)</option>
-                        <option value="1-0-1">1-1-0 (Twice)</option>
                         <option value="1-1-1">1-1-1 (Thrice)</option>
                         <option value="0-0-1">0-0-1 (Nightly)</option>
                         <option value="1-0-0">1-0-0 (Morning)</option>
                         <option value="0-1-0">0-1-0 (Afternoon)</option>
                     </select>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-2">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Duration (Days)</label>
+                    <input type="number" placeholder="e.g. 7" class="med-duration w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-400">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Start Date (Optional)</label>
+                    <input type="date" class="med-start-date w-full px-4 py-2 border border-gray-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-400">
                 </div>
             </div>
         </div>
@@ -116,6 +122,7 @@ async function searchMedicine(input, rowId) {
 
 async function submitPrescription() {
     const token = localStorage.getItem('accessToken');
+    const prescriptionDate = document.getElementById('prescriptionDate')?.value;
 
     if (!token) {
         alert("Session expired. Please login again.");
@@ -123,20 +130,27 @@ async function submitPrescription() {
         return;
     }
 
+    if (!prescriptionDate) {
+        alert("Please select a Prescription Date.");
+        return;
+    }
+
     const payload = {
         doctorName: document.getElementById('doctorName')?.value.trim(),
-        prescriptionDate: document.getElementById('prescriptionDate')?.value,
+        prescriptionDate: prescriptionDate,
         medicines: []
     };
 
-    let isValidSelection = true;
+    let isValidSelection = true; // এখানে নাম ঠিক করে দেওয়া হয়েছে
 
     document.querySelectorAll('.medicine-row').forEach(row => {
         const idVal = row.querySelector('.med-id').value;
-        const dosage = row.querySelector('.med-dosage').value;
         const nameVal = row.querySelector('.med-input').value;
+        const dosage = row.querySelector('.med-dosage').value;
+        const duration = row.querySelector('.med-duration').value;
+        const startDate = row.querySelector('.med-start-date').value;
 
-
+        // যদি নাম লেখে কিন্তু সাজেশন থেকে সিলেক্ট না করে (ID না থাকে)
         if (nameVal.trim() !== "" && !idVal) {
             isValidSelection = false;
         }
@@ -144,7 +158,9 @@ async function submitPrescription() {
         if (idVal) {
             payload.medicines.push({
                 medicineId: parseInt(idVal),
-                dosage: dosage
+                dosage: dosage,
+                durationDays: duration ? parseInt(duration) : 0,
+                startDate: startDate || prescriptionDate // সিলেক্ট না করলে প্রেসক্রিপশন ডেটই স্টার্ট ডেট
             });
         }
     });
@@ -164,7 +180,7 @@ async function submitPrescription() {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}` //
+                'Authorization': `Bearer ${token}`
             },
             body: JSON.stringify(payload)
         });
@@ -172,8 +188,6 @@ async function submitPrescription() {
         if (response.ok) {
             alert("✅ Prescription Saved Successfully!");
             window.location.href = 'dashboard.html';
-        } else if (response.status === 403) {
-            alert("❌ Permission Denied (403). Check your login.");
         } else {
             const err = await response.json();
             alert("Error: " + (err.message || "Failed to save"));

@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
@@ -49,11 +50,23 @@ public class PrescriptionService {
             PrescriptionItem item = new PrescriptionItem();
             Medicine medicine = medicineRepository.findById(mReq.getMedicineId())
                     .orElseThrow(() -> new RuntimeException("Medicine not found"));
+
             item.setMedicine(medicine);
             item.setDosageInstruction(mReq.getDosage());
+            item.setDurationDays(mReq.getDurationDays());
+            item.setStartDate(mReq.getStartDate());
+
+
+            if (mReq.getStartDate() != null && mReq.getDurationDays() != null) {
+                item.setEndDate(mReq.getStartDate().plusDays(mReq.getDurationDays()));
+            } else if (mReq.getStartDate() == null && request.getPrescriptionDate() != null && mReq.getDurationDays() != null) {
+                item.setEndDate(request.getPrescriptionDate().plusDays(mReq.getDurationDays()));
+            }
+
             item.setPrescription(prescription);
             return item;
         }).collect(Collectors.toList());
+
         prescription.setItems(items);
         String fileName = "prescription_" + System.currentTimeMillis() + ".pdf";
         String filePath = "uploads/prescriptions/" + fileName;
@@ -247,14 +260,22 @@ public class PrescriptionService {
 
 
     public PrescriptionDetailsDTO getPrescriptionDetails(Long id, User user) {
-        Prescription p = prescriptionRepository.findById(id).orElseThrow(() -> new RuntimeException("Not found"));
+        // 1. Fetch prescription and validate ownership (Previous Logic)
+        Prescription p = prescriptionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Prescription not found"));
+
         if (!p.getUser().getId().equals(user.getId())) {
-            throw new RuntimeException("Unauthorized");
+            throw new RuntimeException("Unauthorized access to prescription");
         }
 
+        LocalDate today = LocalDate.now();
+
+        // 2. Map items to DTOs
         List<MedicineDetailDTO> meds = p.getItems().stream().map(item -> {
             Medicine m = item.getMedicine();
             MedicineDetailDTO dto = new MedicineDetailDTO();
+
+            // --- Brand & Basic Info (Original Logic) ---
             dto.setBrandId(m.getId());
             dto.setBrandName(m.getBrandName());
             dto.setType(m.getType());
@@ -264,7 +285,7 @@ public class PrescriptionService {
                     m.getManufacturer() != null ? m.getManufacturer().getManufacturerName() : "N/A"
             );
 
-
+            // --- Generic Details (Original Logic) ---
             if (m.getGeneric() != null) {
                 dto.setGenericName(m.getGeneric().getGenericName());
                 dto.setIndication(m.getGeneric().getIndicationDescription());
@@ -275,9 +296,36 @@ public class PrescriptionService {
                 dto.setPregnancyAndLactation(m.getGeneric().getPregnancyAndLactationDescription());
                 dto.setStorageConditions(m.getGeneric().getStorageConditionsDescription());
             }
+
+            // --- Dosage & Timeline Tracking (New Instruction Logic) ---
+            dto.setDosage(item.getDosageInstruction());
+            dto.setDurationDays(item.getDurationDays() != null ? item.getDurationDays() : 0);
+
+            if (item.getStartDate() != null) {
+                dto.setStartDate(item.getStartDate().toString());
+
+                // Calculate days passed
+                long diff = java.time.temporal.ChronoUnit.DAYS.between(item.getStartDate(), today);
+                long daysPassed = (diff >= 0) ? diff + 1 : 0;
+                dto.setDaysPassed(daysPassed);
+
+                if (item.getDurationDays() != null && item.getDurationDays() > 0) {
+                    long remaining = item.getDurationDays() - daysPassed;
+                    dto.setDaysRemaining(remaining < 0 ? 0 : remaining);
+
+                    // Set status based on remaining days
+                    dto.setStatus(remaining < 0 ? "Completed" : "Active");
+                } else {
+                    dto.setStatus("Ongoing"); // Fallback if duration is missing
+                }
+            } else {
+                dto.setStatus("Not Started"); // If start date is missing
+            }
+
             return dto;
         }).toList();
 
+        // 3. Return combined DTO (Original Logic)
         return new PrescriptionDetailsDTO(
                 p.getId(),
                 p.getDoctorName(),

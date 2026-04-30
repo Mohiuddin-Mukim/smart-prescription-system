@@ -23,4 +23,15 @@ public class MedicineDetailDTO {
     private String contraindications;
     private String pregnancyAndLactation;
     private String storageConditions;
+
+
+
+
+
+    private String dosage;
+    private String startDate;
+    private Integer durationDays;
+    private Long daysPassed;
+    private Long daysRemaining;
+    private String status;
 }
