@@ -12,8 +12,13 @@ import java.time.LocalDateTime;
 public class Medicine {
 
     @Id
-    @Column(name = "brand_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     private Long id;
+
+
+    @Column(name = "brand_id")
+    private Long brandId;
 
     @Column(nullable = false)
     private String brandName;

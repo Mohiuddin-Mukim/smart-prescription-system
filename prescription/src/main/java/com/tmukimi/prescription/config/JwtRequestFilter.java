@@ -1,5 +1,8 @@
 package com.tmukimi.prescription.config;
 
+import com.tmukimi.prescription.entities.User;
+import com.tmukimi.prescription.repositories.UserRepository;
+import com.tmukimi.prescription.services.CustomUserDetails;
 import com.tmukimi.prescription.util.JwtUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -8,26 +11,20 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.List;
-
-/**
- * ইউজার যখনই কোনো API কল করে, তখন এই ক্লাসটি সবার আগে সক্রিয় হয়।
- * এটি টোকেন ভ্যালিডেট করে এবং ডাটাবেস কল ছাড়াই ইউজারকে অথেন্টিকেট করে।
- * Author: Mohiuddin Rahman Mukim
- */
+import java.util.Collections;
 
 @Component
 @RequiredArgsConstructor
 public class JwtRequestFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -37,33 +34,66 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
+        // 🔓 Auth APIs skip
         if (path.contains("/api/v1/auth")) {
             filterChain.doFilter(request, response);
             return;
         }
 
+        System.out.println("🔵 Incoming Request: " + request.getRequestURI());
+
         String header = request.getHeader("Authorization");
+        System.out.println("🔵 Authorization Header: " + header);
 
         if (header != null && header.startsWith("Bearer ")) {
+
             String token = header.substring(7);
+            System.out.println("🟡 Token Found");
 
             try {
                 if (jwtUtil.isTokenValid(token)) {
+
                     Claims claims = jwtUtil.extractAllClaims(token);
                     String email = claims.getSubject();
 
-                    UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
-                            email,
-                            null
-                    );
+                    System.out.println("🟢 Email from token: " + email);
 
-                    auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(auth);
+                    User user = userRepository.findByEmail(email).orElse(null);
+
+                    if (user != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+
+                        System.out.println("✅ User found in DB");
+
+                        // 🔥 IMPORTANT: Wrap inside CustomUserDetails
+                        CustomUserDetails userDetails = new CustomUserDetails(user);
+
+                        UsernamePasswordAuthenticationToken auth =
+                                new UsernamePasswordAuthenticationToken(
+                                        userDetails, // ✅ FIXED
+                                        null,
+                                        userDetails.getAuthorities()
+                                );
+
+                        auth.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+
+                        System.out.println("🔥 User Authenticated Successfully");
+                    } else {
+                        System.out.println("❌ User not found or already authenticated");
+                    }
+                } else {
+                    System.out.println("❌ Invalid Token");
                 }
+
             } catch (Exception e) {
                 SecurityContextHolder.clearContext();
+                System.out.println("❌ JWT Error: " + e.getMessage());
             }
+        } else {
+            System.out.println("⚠️ No Token Provided");
         }
+
         filterChain.doFilter(request, response);
     }
 }

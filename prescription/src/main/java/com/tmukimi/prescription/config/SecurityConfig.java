@@ -53,16 +53,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .cors(Customizer.withDefaults()) // CORS এনাবল করা
+                .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-
                 .authorizeHttpRequests(auth -> auth
+                        // এই লাইনটি সবার উপরে দিন
+                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/v1/auth/**", "/api/v1/medicines/**").permitAll()
-                        .requestMatchers("/index.html", "/login.html", "/signup.html", "/search.html", "/medicine-info.html").permitAll()
+                        // সরাসরি এন্ডপয়েন্টটি উল্লেখ করে দিন
+                        .requestMatchers("/api/v1/prescriptions/manual").authenticated()
+                        .requestMatchers("/api/v1/prescriptions/**").authenticated()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .requestMatchers("/", "/index.html", "/login.html", "/signup.html", "/search.html", "/medicineInfo.html", "/addPrescription.html").permitAll()
                         .requestMatchers("/static/**", "/js/**", "/css/**", "/images/**").permitAll()
                         .anyRequest().authenticated()
                 )
+                // ফিল্টার অ্যাড করার আগে কনটেক্সট ক্লিয়ার যাতে না হয় তা নিশ্চিত করুন
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Prescription Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100 p-6">
+
+<div class="max-w-3xl mx-auto bg-white p-6 rounded-2xl shadow">
+
+    <h1 class="text-2xl font-bold mb-4">Prescription Details</h1>
+
+    <p><strong>Doctor:</strong> <span id="doctor"></span></p>
+    <p><strong>Date:</strong> <span id="date"></span></p>
+
+    <div id="medicines" class="mt-6 space-y-4"></div>
+
+    <div class="mt-6 flex gap-4">
+        <button id="viewPdf" class="bg-blue-600 text-white px-4 py-2 rounded">
+            View PDF
+        </button>
+    </div>
+
+</div>
+
+<script src="js/prescription_details.js"></script>
+</body>
+</html>

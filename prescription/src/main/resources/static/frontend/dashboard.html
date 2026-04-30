@@ -10,111 +10,105 @@
 </head>
 <body class="bg-gray-50 min-h-screen flex">
 
-    <aside class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
-        <div class="p-6">
-            <h1 class="text-2xl font-bold text-blue-700">SmartRx</h1>
+<aside class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
+    <div class="p-6">
+        <h1 class="text-2xl font-bold text-blue-700">SmartRx</h1>
+    </div>
+    <nav class="flex-1 px-4 space-y-2">
+        <a href="#" class="flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-semibold">
+            <span class="mr-3">📊</span> Dashboard
+        </a>
+        <!-- My Prescriptions Sidebar Link -->
+        <a href="http://localhost:63342/prescription/static/frontend/addPrescription.html" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+            <span class="mr-3">📄</span> My Prescriptions
+        </a>
+        <!-- Medicine Search Sidebar Link -->
+        <a href="http://localhost:63342/prescription/static/frontend/search.html" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+            <span class="mr-3">💊</span> Medicine Search
+        </a>
+        <a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+            <span class="mr-3">⚙️</span> Settings
+        </a>
+    </nav>
+    <div class="p-4 border-t border-gray-100">
+        <a href="/logout" class="flex items-center px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition font-medium">
+            <span class="mr-3">🚪</span> Logout
+        </a>
+    </div>
+</aside>
+
+<main class="flex-1 flex flex-col min-w-0 overflow-hidden">
+
+    <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-8">
+        <div class="flex items-center md:hidden">
+            <button class="text-gray-600">☰</button>
+            <span class="ml-4 font-bold text-blue-700">SmartRx</span>
         </div>
-        <nav class="flex-1 px-4 space-y-2">
-            <a href="#" class="flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-semibold">
-                <span class="mr-3">📊</span> Dashboard
-            </a>
-            <a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
-                <span class="mr-3">📄</span> My Prescriptions
-            </a>
-            <a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
-                <span class="mr-3">💊</span> Medicine Search
-            </a>
-            <a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
-                <span class="mr-3">⚙️</span> Settings
-            </a>
-        </nav>
-        <div class="p-4 border-t border-gray-100">
-            <a href="/logout" class="flex items-center px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition font-medium">
-                <span class="mr-3">🚪</span> Logout
-            </a>
+        <div class="hidden md:block">
+            <h2 class="text-lg font-semibold text-gray-800">Welcome back, User!</h2>
         </div>
-    </aside>
-
-    <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
-        
-        <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-8">
-            <div class="flex items-center md:hidden">
-                <button class="text-gray-600">☰</button>
-                <span class="ml-4 font-bold text-blue-700">SmartRx</span>
-            </div>
-            <div class="hidden md:block">
-                <h2 class="text-lg font-semibold text-gray-800">Welcome back, User!</h2>
-            </div>
-            <div class="flex items-center space-x-4">
-                <button class="text-sm font-semibold text-gray-500 border px-3 py-1 rounded-full hover:bg-gray-50">EN | বাং</button>
-                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold">U</div>
-            </div>
-        </header>
-
-        <div class="flex-1 overflow-y-auto p-4 md:p-8 space-y-8">
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <div class="bg-blue-600 p-6 rounded-3xl shadow-lg shadow-blue-100 text-white relative overflow-hidden group">
-                    <div class="relative z-10">
-                        <h3 class="text-lg font-bold mb-1">New Prescription</h3>
-                        <p class="text-blue-100 text-sm mb-4">Manual entry or PDF upload</p>
-                        <button class="bg-white text-blue-600 px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-50 transition">Add Now +</button>
-                    </div>
-                    <span class="absolute right-[-10px] bottom-[-10px] text-7xl opacity-20 group-hover:scale-110 transition-transform">📄</span>
-                </div>
-
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group">
-                    <h3 class="text-lg font-bold text-gray-800 mb-1">Medicine Engine</h3>
-                    <p class="text-gray-500 text-sm mb-4">Search info & alternatives</p>
-                    <button class="bg-gray-100 text-gray-800 px-4 py-2 rounded-xl font-bold text-sm hover:bg-gray-200 transition">Search 🔍</button>
-                    <span class="absolute right-[-10px] bottom-[-10px] text-7xl opacity-10 group-hover:scale-110 transition-transform">💊</span>
-                </div>
-
-                <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group">
-                    <h3 class="text-lg font-bold text-gray-800 mb-1">Smart Alerts</h3>
-                    <p class="text-gray-500 text-sm mb-4">Next: Paracetamol at 2:00 PM</p>
-                    <button class="bg-green-50 text-green-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-green-100 transition">View Schedule 🔔</button>
-                    <span class="absolute right-[-10px] bottom-[-10px] text-7xl opacity-10 group-hover:scale-110 transition-transform">⏰</span>
-                </div>
-            </div>
-
-            <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-                <div class="p-6 border-b border-gray-50 flex justify-between items-center">
-                    <h3 class="text-lg font-bold text-gray-800">Recent Prescriptions</h3>
-                    <a href="#" class="text-sm text-blue-600 font-semibold hover:underline">View All</a>
-                </div>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left">
-                        <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-bold">
-                            <tr>
-                                <th class="px-6 py-4">Date</th>
-                                <th class="px-6 py-4">Doctor Name</th>
-                                <th class="px-6 py-4">Medicines</th>
-                                <th class="px-6 py-4">Status</th>
-                                <th class="px-6 py-4">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-gray-50 text-sm text-gray-700">
-                            <tr class="hover:bg-gray-50 transition">
-                                <td class="px-6 py-4">12 Oct 2024</td>
-                                <td class="px-6 py-4 font-semibold">Dr. Ahmed Ali</td>
-                                <td class="px-6 py-4 text-gray-500">Napa, Seclo, Fexo...</td>
-                                <td class="px-6 py-4"><span class="bg-green-100 text-green-700 px-2 py-1 rounded-lg text-xs font-bold uppercase">Active</span></td>
-                                <td class="px-6 py-4"><button class="text-blue-600 font-bold hover:underline">Open</button></td>
-                            </tr>
-                            <tr class="hover:bg-gray-50 transition">
-                                <td class="px-6 py-4">05 Sep 2024</td>
-                                <td class="px-6 py-4 font-semibold">Dr. Sarah Khan</td>
-                                <td class="px-6 py-4 text-gray-500">Azithromycin</td>
-                                <td class="px-6 py-4"><span class="bg-gray-100 text-gray-500 px-2 py-1 rounded-lg text-xs font-bold uppercase">Completed</span></td>
-                                <td class="px-6 py-4"><button class="text-blue-600 font-bold hover:underline">Open</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
+        <div class="flex items-center space-x-4">
+            <button class="text-sm font-semibold text-gray-500 border px-3 py-1 rounded-full hover:bg-gray-50">EN | বাং</button>
+            <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold">U</div>
         </div>
-    </main>
+    </header>
+
+    <div class="flex-1 overflow-y-auto p-4 md:p-8 space-y-8">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- New Prescription Card -->
+            <div class="bg-blue-600 p-6 rounded-3xl shadow-lg shadow-blue-100 text-white relative overflow-hidden group">
+                <div class="relative z-10">
+                    <h3 class="text-lg font-bold mb-1">New Prescription</h3>
+                    <p class="text-blue-100 text-sm mb-4">Manual entry or PDF upload</p>
+                    <a href="http://localhost:63342/prescription/static/frontend/addPrescription.html" class="bg-white text-blue-600 px-4 py-2 rounded-xl font-bold text-sm hover:bg-blue-50 transition inline-block">Add Now +</a>
+                </div>
+                <span class="absolute right-[-10px] bottom-[-10px] text-7xl opacity-20 group-hover:scale-110 transition-transform">📄</span>
+            </div>
+
+            <!-- Medicine Engine Card -->
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group">
+                <h3 class="text-lg font-bold text-gray-800 mb-1">Medicine Engine</h3>
+                <p class="text-gray-500 text-sm mb-4">Search info & alternatives</p>
+                <a href="http://localhost:63342/prescription/static/frontend/search.html" class="bg-gray-100 text-gray-800 px-4 py-2 rounded-xl font-bold text-sm hover:bg-gray-200 transition inline-block">Search 🔍</a>
+                <span class="absolute right-[-10px] bottom-[-10px] text-7xl opacity-10 group-hover:scale-110 transition-transform">💊</span>
+            </div>
+
+            <!-- Smart Alerts Card -->
+            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group">
+                <h3 class="text-lg font-bold text-gray-800 mb-1">Smart Alerts</h3>
+                <p class="text-gray-500 text-sm mb-4">Next: Paracetamol at 2:00 PM</p>
+                <button class="bg-green-50 text-green-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-green-100 transition">View Schedule 🔔</button>
+                <span class="absolute right-[-10px] bottom-[-10px] text-7xl opacity-10 group-hover:scale-110 transition-transform">⏰</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-6 border-b border-gray-50 flex justify-between items-center">
+                <h3 class="text-lg font-bold text-gray-800">Recent Prescriptions</h3>
+                <a href="http://localhost:63342/prescription/static/frontend/addPrescription.html" class="text-sm text-blue-600 font-semibold hover:underline">View All</a>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left">
+                    <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-bold">
+                    <tr>
+                        <th class="px-6 py-4">Date</th>
+                        <th class="px-6 py-4">Doctor Name</th>
+                        <th class="px-6 py-4">Medicines</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4">Action</th>
+                    </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-50 text-sm text-gray-700">
+
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<script src="js/dashboard.js"></script>
 </body>
 </html>
