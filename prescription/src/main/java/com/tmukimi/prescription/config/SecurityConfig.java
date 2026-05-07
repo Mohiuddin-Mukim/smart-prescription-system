@@ -57,10 +57,10 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // এই লাইনটি সবার উপরে দিন
+
                         .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers("/api/v1/auth/**", "/api/v1/medicines/**").permitAll()
-                        // সরাসরি এন্ডপয়েন্টটি উল্লেখ করে দিন
+
                         .requestMatchers("/api/v1/prescriptions/manual").authenticated()
                         .requestMatchers("/api/v1/prescriptions/**").authenticated()
                         .requestMatchers("/uploads/**").permitAll()
@@ -68,7 +68,6 @@ public class SecurityConfig {
                         .requestMatchers("/static/**", "/js/**", "/css/**", "/images/**").permitAll()
                         .anyRequest().authenticated()
                 )
-                // ফিল্টার অ্যাড করার আগে কনটেক্সট ক্লিয়ার যাতে না হয় তা নিশ্চিত করুন
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();

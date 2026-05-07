@@ -3,6 +3,12 @@ let medicineCount = 0;
 document.addEventListener('DOMContentLoaded', () => {
     console.log("Page Loaded");
     addMedicineRow();
+
+
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', handlePdfUpload);
+    }
 });
 
 function addMedicineRow() {
@@ -141,7 +147,7 @@ async function submitPrescription() {
         medicines: []
     };
 
-    let isValidSelection = true; // এখানে নাম ঠিক করে দেওয়া হয়েছে
+    let isValidSelection = true;
 
     document.querySelectorAll('.medicine-row').forEach(row => {
         const idVal = row.querySelector('.med-id').value;
@@ -197,3 +203,85 @@ async function submitPrescription() {
         alert("Failed to connect to server.");
     }
 }
+
+
+async function handlePdfUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const token = localStorage.getItem('accessToken');
+
+    try {
+        console.log("Starting extraction...");
+        alert("Extracting data... Please wait.");
+
+        const response = await fetch('http://localhost:8080/api/v1/prescriptions/upload-extract', {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`
+            },
+            body: formData
+        });
+
+        if (!response.ok) {
+            const errorData = await response.text();
+            throw new Error(errorData || "Extraction failed");
+        }
+
+        const extractedMedicines = await response.json();
+        console.log("Extracted Data:", extractedMedicines);
+
+        if (extractedMedicines && extractedMedicines.length > 0) {
+            // UI আপডেট শুরু
+            const medicineList = document.getElementById('medicine-list');
+            medicineList.innerHTML = '';
+            medicineCount = 0;
+
+            extractedMedicines.forEach(med => {
+                addMedicineRow();
+                const currentRow = document.querySelector(`.medicine-row:last-child`);
+
+                if (currentRow) {
+                    currentRow.querySelector('.med-input').value = med.brandName || "";
+                    currentRow.querySelector('.med-id').value = med.medicineId || "";
+                    const dosageSelect = currentRow.querySelector('.med-dosage');
+
+                    if (med.dosage && dosageSelect) {
+                        let optionExists = Array.from(dosageSelect.options)
+                            .some(opt => opt.value === med.dosage);
+
+                        if (!optionExists) {
+                            let newOpt = new Option(med.dosage, med.dosage);
+                            dosageSelect.add(newOpt);
+                        }
+
+                        dosageSelect.value = med.dosage;
+                    }
+                    if(med.durationDays) {
+                        const durationInput = currentRow.querySelector('.med-duration');
+                        if(durationInput) {
+                            durationInput.value = med.durationDays;
+                        }
+                    }
+                }
+            });
+
+            switchTab('manual');
+
+            document.getElementById('tab-manual').classList.add('bg-white', 'text-blue-600', 'shadow-sm');
+            document.getElementById('tab-pdf').classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
+
+            alert(`Found ${extractedMedicines.length} medicines! Please verify.`);
+        } else {
+            alert("No medicines recognized in this PDF. Try manual entry.");
+        }
+
+    } catch (error) {
+        console.error("❌ Extraction Error:", error);
+        alert("Failed to extract data: " + error.message);
+    }
+}
+

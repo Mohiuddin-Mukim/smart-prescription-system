@@ -1,16 +1,21 @@
 package com.tmukimi.prescription.services;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.kernel.colors.ColorConstants;
 import com.itextpdf.kernel.colors.DeviceRgb;
 import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfReader;
 import com.itextpdf.kernel.pdf.PdfWriter;
 import com.itextpdf.kernel.pdf.canvas.draw.SolidLine;
+import com.itextpdf.kernel.pdf.canvas.parser.PdfTextExtractor;
 import com.itextpdf.layout.Document;
 import com.itextpdf.layout.borders.Border;
 import com.itextpdf.layout.element.*;
 import com.itextpdf.layout.properties.TextAlignment;
 import com.itextpdf.layout.properties.UnitValue;
 import com.itextpdf.layout.properties.VerticalAlignment;
+import com.tmukimi.prescription.dtos.ExtractedMedicineDTO;
 import com.tmukimi.prescription.dtos.MedicineDetailDTO;
 import com.tmukimi.prescription.dtos.PrescriptionDetailsDTO;
 import com.tmukimi.prescription.dtos.PrescriptionRequestDTO;
@@ -21,14 +26,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -37,6 +47,7 @@ public class PrescriptionService {
 
     private final PrescriptionRepository prescriptionRepository;
     private final MedicineRepository medicineRepository;
+    private final GeminiService geminiService;
 
     @Transactional
     public Prescription saveManualPrescription(PrescriptionRequestDTO request, User user) {
@@ -260,7 +271,6 @@ public class PrescriptionService {
 
 
     public PrescriptionDetailsDTO getPrescriptionDetails(Long id, User user) {
-        // 1. Fetch prescription and validate ownership (Previous Logic)
         Prescription p = prescriptionRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Prescription not found"));
 
@@ -270,12 +280,10 @@ public class PrescriptionService {
 
         LocalDate today = LocalDate.now();
 
-        // 2. Map items to DTOs
         List<MedicineDetailDTO> meds = p.getItems().stream().map(item -> {
             Medicine m = item.getMedicine();
             MedicineDetailDTO dto = new MedicineDetailDTO();
 
-            // --- Brand & Basic Info (Original Logic) ---
             dto.setBrandId(m.getId());
             dto.setBrandName(m.getBrandName());
             dto.setType(m.getType());
@@ -285,7 +293,6 @@ public class PrescriptionService {
                     m.getManufacturer() != null ? m.getManufacturer().getManufacturerName() : "N/A"
             );
 
-            // --- Generic Details (Original Logic) ---
             if (m.getGeneric() != null) {
                 dto.setGenericName(m.getGeneric().getGenericName());
                 dto.setIndication(m.getGeneric().getIndicationDescription());
@@ -297,14 +304,12 @@ public class PrescriptionService {
                 dto.setStorageConditions(m.getGeneric().getStorageConditionsDescription());
             }
 
-            // --- Dosage & Timeline Tracking (New Instruction Logic) ---
             dto.setDosage(item.getDosageInstruction());
             dto.setDurationDays(item.getDurationDays() != null ? item.getDurationDays() : 0);
 
             if (item.getStartDate() != null) {
                 dto.setStartDate(item.getStartDate().toString());
 
-                // Calculate days passed
                 long diff = java.time.temporal.ChronoUnit.DAYS.between(item.getStartDate(), today);
                 long daysPassed = (diff >= 0) ? diff + 1 : 0;
                 dto.setDaysPassed(daysPassed);
@@ -313,19 +318,17 @@ public class PrescriptionService {
                     long remaining = item.getDurationDays() - daysPassed;
                     dto.setDaysRemaining(remaining < 0 ? 0 : remaining);
 
-                    // Set status based on remaining days
                     dto.setStatus(remaining < 0 ? "Completed" : "Active");
                 } else {
-                    dto.setStatus("Ongoing"); // Fallback if duration is missing
+                    dto.setStatus("Ongoing");
                 }
             } else {
-                dto.setStatus("Not Started"); // If start date is missing
+                dto.setStatus("Not Started");
             }
 
             return dto;
         }).toList();
 
-        // 3. Return combined DTO (Original Logic)
         return new PrescriptionDetailsDTO(
                 p.getId(),
                 p.getDoctorName(),
@@ -366,5 +369,37 @@ public class PrescriptionService {
                 })
                 .toList();
     }
+
+
+
+
+
+    public List<ExtractedMedicineDTO> extractMedicinesFromPdf(MultipartFile file) {
+        try {
+            String jsonResult = geminiService.extractMedicineData(file);
+
+            ObjectMapper mapper = new ObjectMapper();
+            List<ExtractedMedicineDTO> extractedMeds = mapper.readValue(jsonResult,
+                    new TypeReference<List<ExtractedMedicineDTO>>() {});
+
+            for (ExtractedMedicineDTO dto : extractedMeds) {
+                String brandName = dto.getBrandName().trim();
+
+                List<Medicine> medsInDb = medicineRepository.findByBrandNameContainingIgnoreCase(brandName);
+
+                if (!medsInDb.isEmpty()) {
+                    Medicine bestMatch = medsInDb.get(0);
+                    dto.setMedicineId(bestMatch.getId());
+                    dto.setBrandName(bestMatch.getBrandName());
+                }
+            }
+
+            return extractedMeds;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to process prescription: " + e.getMessage());
+        }
+    }
+
 
 }

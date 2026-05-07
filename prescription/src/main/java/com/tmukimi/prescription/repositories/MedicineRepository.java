@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface MedicineRepository extends JpaRepository<Medicine, Long> {
@@ -16,4 +17,10 @@ public interface MedicineRepository extends JpaRepository<Medicine, Long> {
             "LOWER(m.brandName) LIKE LOWER(concat(:q, '%')) OR " +
             "LOWER(m.generic.genericName) LIKE LOWER(concat(:q, '%'))")
     List<Medicine> findSuggestions(@Param("q") String q, Pageable pageable);
+
+
+    Optional<Medicine> findByBrandNameIgnoreCase(String brandName);
+
+    List<Medicine> findByBrandNameContainingIgnoreCase(String brandName);
+
 }

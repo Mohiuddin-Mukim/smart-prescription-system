@@ -25,3 +25,9 @@ app:
   jwt:
     secret: TMukimiiSecretKeyyeKterceSiimikuMTTahiraJahanHimiiiiiiiiSoitisalongkeynow
     expiration-ms: 36000000
+
+
+gemini:
+  api:
+    key: AIzaSyCHxyvbNUFjavkR62rx1gZtwtegKf3ajKI
+    url: https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent

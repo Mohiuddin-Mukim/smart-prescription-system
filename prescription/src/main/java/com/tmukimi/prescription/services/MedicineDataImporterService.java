@@ -43,7 +43,7 @@ public class MedicineDataImporterService {
         log.info("Importing Manufacturers...");
         try (CSVReader reader = new CSVReader(new InputStreamReader(new ClassPathResource("data/manufacturer.csv").getInputStream()))) {
             String[] line;
-            reader.readNext(); // Skip header
+            reader.readNext();
             List<Manufacturer> list = new ArrayList<>();
             while ((line = reader.readNext()) != null) {
                 list.add(new Manufacturer(Long.parseLong(line[0]), line[1]));
@@ -58,7 +58,7 @@ public class MedicineDataImporterService {
                 new InputStreamReader(new ClassPathResource("data/generic.csv").getInputStream()))) {
 
             String[] line;
-            reader.readNext(); // skip header
+            reader.readNext();
 
             List<Generic> list = new ArrayList<>();
 
@@ -115,7 +115,7 @@ public class MedicineDataImporterService {
 
                     Medicine m = new Medicine();
 
-                    m.setId(Long.parseLong(line[0].trim())); // brand_id
+                    m.setId(Long.parseLong(line[0].trim()));
                     m.setBrandName(line[1].trim());
                     m.setType(line[2].trim());
                     m.setDosageForm(line[4].trim());

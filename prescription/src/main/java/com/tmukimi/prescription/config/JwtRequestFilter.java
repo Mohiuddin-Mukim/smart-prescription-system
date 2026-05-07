@@ -34,21 +34,20 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
         String path = request.getRequestURI();
 
-        // 🔓 Auth APIs skip
         if (path.contains("/api/v1/auth")) {
             filterChain.doFilter(request, response);
             return;
         }
 
-        System.out.println("🔵 Incoming Request: " + request.getRequestURI());
+        System.out.println("Incoming Request: " + request.getRequestURI());
 
         String header = request.getHeader("Authorization");
-        System.out.println("🔵 Authorization Header: " + header);
+        System.out.println("Authorization Header: " + header);
 
         if (header != null && header.startsWith("Bearer ")) {
 
             String token = header.substring(7);
-            System.out.println("🟡 Token Found");
+            System.out.println("Token Found");
 
             try {
                 if (jwtUtil.isTokenValid(token)) {
@@ -56,20 +55,19 @@ public class JwtRequestFilter extends OncePerRequestFilter {
                     Claims claims = jwtUtil.extractAllClaims(token);
                     String email = claims.getSubject();
 
-                    System.out.println("🟢 Email from token: " + email);
+                    System.out.println("Email from token: " + email);
 
                     User user = userRepository.findByEmail(email).orElse(null);
 
                     if (user != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
-                        System.out.println("✅ User found in DB");
+                        System.out.println("User found in DB");
 
-                        // 🔥 IMPORTANT: Wrap inside CustomUserDetails
                         CustomUserDetails userDetails = new CustomUserDetails(user);
 
                         UsernamePasswordAuthenticationToken auth =
                                 new UsernamePasswordAuthenticationToken(
-                                        userDetails, // ✅ FIXED
+                                        userDetails,
                                         null,
                                         userDetails.getAuthorities()
                                 );
@@ -78,20 +76,20 @@ public class JwtRequestFilter extends OncePerRequestFilter {
 
                         SecurityContextHolder.getContext().setAuthentication(auth);
 
-                        System.out.println("🔥 User Authenticated Successfully");
+                        System.out.println("User Authenticated Successfully");
                     } else {
-                        System.out.println("❌ User not found or already authenticated");
+                        System.out.println("User not found or already authenticated");
                     }
                 } else {
-                    System.out.println("❌ Invalid Token");
+                    System.out.println("Invalid Token");
                 }
 
             } catch (Exception e) {
                 SecurityContextHolder.clearContext();
-                System.out.println("❌ JWT Error: " + e.getMessage());
+                System.out.println("JWT Error: " + e.getMessage());
             }
         } else {
-            System.out.println("⚠️ No Token Provided");
+            System.out.println("No Token Provided");
         }
 
         filterChain.doFilter(request, response);
