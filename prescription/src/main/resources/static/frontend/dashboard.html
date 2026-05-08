@@ -10,45 +10,49 @@
 </head>
 <body class="bg-gray-50 min-h-screen flex">
 
-<aside class="hidden md:flex flex-col w-64 bg-white border-r border-gray-200">
-    <div class="p-6">
-        <h1 class="text-2xl font-bold text-blue-700">SmartRx</h1>
+
+<aside id="sidebar" class="fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 transform -translate-x-full md:translate-x-0 md:static md:inset-0 transition-transform duration-300 ease-in-out flex flex-col">
+    <div class="p-6 flex justify-between items-center">
+        <a href="index.html" class="text-2xl font-bold text-blue-700">SmartRx</a>
+        <button onclick="toggleSidebar()" class="md:hidden text-gray-500 text-2xl">&times;</button>
     </div>
+
     <nav class="flex-1 px-4 space-y-2">
-        <a href="#" class="flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-semibold">
+        <a href="dashboard.html" id="dashboardNavLink" class="nav-link flex items-center px-4 py-3 text-blue-700 bg-blue-50 rounded-xl font-semibold">
             <span class="mr-3">📊</span> Dashboard
         </a>
-        <!-- My Prescriptions Sidebar Link -->
-        <a href="http://localhost:63342/prescription/static/frontend/addPrescription.html" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+        <a href="#" id="myPrescriptionsBtn" class="nav-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <span class="mr-3">📄</span> My Prescriptions
         </a>
-        <!-- Medicine Search Sidebar Link -->
-        <a href="http://localhost:63342/prescription/static/frontend/search.html" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+        <a href="search.html" id="searchNavLink" class="nav-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
             <span class="mr-3">💊</span> Medicine Search
         </a>
-        <a href="#" class="flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
-            <span class="mr-3">⚙️</span> Settings
+        <a href="index.html" class="nav-link flex items-center px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-xl transition">
+            <span class="mr-3">🏠</span> Home Page
         </a>
     </nav>
+
     <div class="p-4 border-t border-gray-100">
-        <a href="/logout" class="flex items-center px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition font-medium">
+        <button onclick="handleLogout()" class="w-full flex items-center px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition font-medium">
             <span class="mr-3">🚪</span> Logout
-        </a>
+        </button>
     </div>
 </aside>
+
+<div id="sidebarOverlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/20 z-40 hidden md:hidden"></div>
+
 
 <main class="flex-1 flex flex-col min-w-0 overflow-hidden">
 
     <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:px-8">
         <div class="flex items-center md:hidden">
-            <button class="text-gray-600">☰</button>
-            <span class="ml-4 font-bold text-blue-700">SmartRx</span>
+            <button onclick="toggleSidebar()" class="text-gray-600 p-2">☰</button>
+            <a href="index.html" class="ml-4 font-bold text-blue-700">SmartRx</a>
         </div>
         <div class="hidden md:block">
             <h2 class="text-lg font-semibold text-gray-800">Welcome back, User!</h2>
         </div>
         <div class="flex items-center space-x-4">
-            <button class="text-sm font-semibold text-gray-500 border px-3 py-1 rounded-full hover:bg-gray-50">EN | বাং</button>
             <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-700 font-bold">U</div>
         </div>
     </header>
@@ -75,19 +79,38 @@
             </div>
 
             <!-- Smart Alerts Card -->
-            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group">
-                <h3 class="text-lg font-bold text-gray-800 mb-1">Smart Alerts</h3>
-                <p class="text-gray-500 text-sm mb-4">Next: Paracetamol at 2:00 PM</p>
-                <button class="bg-green-50 text-green-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-green-100 transition">View Schedule 🔔</button>
-                <span class="absolute right-[-10px] bottom-[-10px] text-7xl opacity-10 group-hover:scale-110 transition-transform">⏰</span>
-            </div>
+<!--            <div class="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 relative overflow-hidden group">-->
+<!--                <h3 class="text-lg font-bold text-gray-800 mb-1">Smart Alerts</h3>-->
+<!--                <p id="smartAlertText" class="text-gray-500 text-sm mb-4">Checking schedule...</p>-->
+<!--                <button class="bg-green-50 text-green-700 px-4 py-2 rounded-xl font-bold text-sm hover:bg-green-100 transition">View Schedule 🔔</button>-->
+<!--                <span class="absolute right-[-10px] bottom-[-10px] text-7xl opacity-10 group-hover:scale-110 transition-transform">⏰</span>-->
+<!--            </div>-->
         </div>
 
-        <div class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
-            <div class="p-6 border-b border-gray-50 flex justify-between items-center">
-                <h3 class="text-lg font-bold text-gray-800">Recent Prescriptions</h3>
-                <a href="http://localhost:63342/prescription/static/frontend/addPrescription.html" class="text-sm text-blue-600 font-semibold hover:underline">View All</a>
+
+
+        <!-- Recent Prescriptions Section -->
+        <div id="prescriptionSection" class="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
+            <div class="p-6 border-b border-gray-50 flex flex-wrap justify-between items-center gap-4">
+                <h3 id="tableTitle" class="text-lg font-bold text-gray-800">Recent Prescriptions</h3>
+
+                <!-- Filter Controls -->
+                <div class="flex items-center space-x-2">
+
+                    <select id="timeRangeFilter" class="border rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white">
+                        <option value="all">All Records</option>
+                        <option value="7days">Last 1 Week</option>
+                        <option value="1month">Last 1 Month</option>
+                        <option value="1year">Last 1 Year</option>
+                        <option value="5years">Last 5 Years</option>
+                    </select>
+
+                    <input type="date" id="dateFilter" class="border rounded-lg px-3 py-1.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+
+                    <button onclick="clearFilter()" class="text-xs text-gray-500 hover:text-blue-600 font-semibold">Clear</button>
+                </div>
             </div>
+
             <div class="overflow-x-auto">
                 <table class="w-full text-left">
                     <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-bold">
@@ -95,14 +118,20 @@
                         <th class="px-6 py-4">Date</th>
                         <th class="px-6 py-4">Doctor Name</th>
                         <th class="px-6 py-4">Medicines</th>
-                        <th class="px-6 py-4">Status</th>
                         <th class="px-6 py-4">Action</th>
                     </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-50 text-sm text-gray-700">
+                    <tbody id="prescriptionBody" class="divide-y divide-gray-50 text-sm text-gray-700">
 
                     </tbody>
                 </table>
+            </div>
+
+
+            <div class="p-4 border-t border-gray-50 flex justify-between items-center">
+                <button id="prevBtn" onclick="changePage(-1)" class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg disabled:opacity-50">Previous</button>
+                <span id="pageInfo" class="text-sm text-gray-500">Page 1</span>
+                <button id="nextBtn" onclick="changePage(1)" class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 rounded-lg disabled:opacity-50">Next</button>
             </div>
         </div>
 

@@ -1,6 +1,5 @@
 const BASE_URL = "http://localhost:8080/api/v1/auth";
 
-// --- ১. পাসওয়ার্ড দেখা বা লুকানোর লজিক (Global Toggle) ---
 window.togglePassword = function(inputId, iconId) {
     const passwordField = document.getElementById(inputId);
     const eyeIcon = document.getElementById(iconId);
@@ -9,7 +8,7 @@ window.togglePassword = function(inputId, iconId) {
         const type = passwordField.getAttribute('type') === 'password' ? 'text' : 'password';
         passwordField.setAttribute('type', type);
 
-        // কালার টগল করা
+
         if (type === 'text') {
             eyeIcon.classList.add('text-blue-600');
             eyeIcon.classList.remove('text-gray-400');
@@ -20,9 +19,10 @@ window.togglePassword = function(inputId, iconId) {
     }
 };
 
+
+
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- ২. লগইন সাবমিট লজিক ---
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
         loginForm.addEventListener('submit', async (e) => {
@@ -50,15 +50,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.setItem('userName', data.fullName);
                     localStorage.setItem('userId', data.userId);
 
-                    // এখানে আপনার রোল হ্যান্ডলিং লজিক (যদি ব্যাকএন্ড রোল পাঠায়)
-                    // উদাহরণের জন্য: window.location.href = "index.html";
-                    alert("লগইন সফল!");
-                    window.location.href = "index.html";
+                    showStatusMessage("লগইন সফল হয়েছে!", "success");
+
+                    setTimeout(() => {
+                        window.location.href = "index.html";
+                    }, 1500);
                 } else {
-                    alert(data.message || 'Login failed! Please check credentials.');
+                    showStatusMessage(data.message || 'Login failed! Please check credentials.',"error");
                 }
             } catch (error) {
-                alert('Server connection failed!');
+                showStatusMessage('Server connection failed!',"error");
             } finally {
                 loginBtn.innerText = "Sign In";
                 loginBtn.disabled = false;
@@ -66,7 +67,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // --- ৩. সাইনআপ সাবমিট লজিক ---
+
+
     const signupForm = document.getElementById('signupForm');
     if (signupForm) {
         signupForm.addEventListener('submit', async (e) => {
@@ -91,14 +93,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (response.ok) {
-                    alert('Registration Successful! Please login.');
+                    showStatusMessage('Registration Successful! Please login.',"success");
                     window.location.href = 'login.html';
                 } else {
                     const errorText = await response.text();
-                    alert(errorText || 'Signup failed! Check your data.');
+                    showStatusMessage(errorText || 'Signup failed! Check your data.',"error");
                 }
             } catch (error) {
-                alert('Server error occurred.');
+                showStatusMessage('Server error occurred.',"error");
             } finally {
                 signupBtn.innerText = "Register Now";
                 signupBtn.disabled = false;
@@ -109,27 +111,64 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUI();
 });
 
-// --- ৪. UI আপডেট লজিক ---
+
+
+
+
 function updateUI() {
     const userName = localStorage.getItem('userName');
     const authSection = document.querySelector('.flex.items-center.space-x-4.border-r');
+    const profileBtn = document.getElementById('profileBtn');
+    const userInitial = document.getElementById('userInitial');
 
-    if (userName && authSection) {
-        authSection.innerHTML = `
-            <div class="flex items-center space-x-3">
-                <span class="text-blue-700 font-bold">👋 ${userName}</span>
-                <button onclick="logout()" class="text-xs bg-gray-100 hover:bg-red-50 text-red-600 px-3 py-1 rounded-full border border-red-100 transition">
-                    Logout
-                </button>
-            </div>
-        `;
+    if (userName) {
+        if (authSection) {
+            authSection.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <span class="text-blue-700 font-bold hidden md:block">👋 ${userName}</span>
+                    <button onclick="handleLogout()" class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1 rounded-full border border-red-100 transition">
+                        Logout
+                    </button>
+                </div>
+            `;
+        }
+        if (profileBtn) {
+            profileBtn.classList.remove('hidden');
+            userInitial.innerText = userName.charAt(0).toUpperCase();
+        }
     }
 }
 
-// --- ৫. লগআউট লজিক ---
-window.logout = function() {
-    if (confirm("আপনি কি লগআউট করতে চান?")) {
+
+
+window.handleLogout = function() {
+    const confirmLogout = document.createElement('div');
+    confirmLogout.className = "fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4";
+    confirmLogout.innerHTML = `
+        <div class="bg-white p-6 rounded-2xl max-w-sm w-full shadow-2xl text-center">
+            <div class="text-red-500 text-4xl mb-4">👋</div>
+            <h3 class="text-xl font-bold text-gray-800 mb-2">লগআউট করতে চান?</h3>
+            <p class="text-gray-500 mb-6">আপনার সেশনটি শেষ হয়ে যাবে।</p>
+            <div class="flex space-x-3">
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="flex-1 px-4 py-2 border rounded-xl hover:bg-gray-50 transition">ফিরে যান</button>
+                <button id="confirmLogoutBtn" class="flex-1 px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 transition">হ্যাঁ, লগআউট</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(confirmLogout);
+
+    document.getElementById('confirmLogoutBtn').onclick = () => {
         localStorage.clear();
         window.location.href = "index.html";
-    }
+    };
 };
+
+
+function showStatusMessage(message, type) {
+    const msgDiv = document.createElement('div');
+    msgDiv.className = `fixed top-10 left-1/2 -translate-x-1/2 px-6 py-3 rounded-full shadow-lg text-white font-medium z-50 transition-all transform animate-bounce ${type === 'success' ? 'bg-green-600' : 'bg-red-600'}`;
+    msgDiv.innerText = message;
+    document.body.appendChild(msgDiv);
+
+    setTimeout(() => { msgDiv.remove(); }, 3000);
+}

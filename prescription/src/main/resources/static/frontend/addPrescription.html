@@ -68,6 +68,22 @@
     </div>
 </main>
 
+
+
+<div id="statusModal" class="fixed inset-0 bg-black/50 hidden z-[100] flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-sm rounded-3xl p-8 shadow-2xl text-center transform transition-all scale-95 opacity-0 duration-300" id="statusModalContent">
+        <div id="modalIconBg" class="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl">
+            <span id="modalIcon">✓</span>
+        </div>
+
+        <h3 id="modalTitle" class="text-2xl font-bold text-gray-800 mb-2">Status</h3>
+        <p id="modalMessage" class="text-gray-500 mb-8">Message goes here...</p>
+
+        <div id="modalActions" class="space-y-3">
+        </div>
+    </div>
+</div>
+
 <script src="js/add_prescription.js"></script>
 <script>
     function switchTab(type) {

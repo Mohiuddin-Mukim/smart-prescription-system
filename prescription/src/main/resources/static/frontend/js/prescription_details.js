@@ -11,19 +11,17 @@ fetch(`http://localhost:8080/api/v1/prescriptions/${id}`, {
         return res.json();
     })
     .then(data => {
-        // Basic Info rendering
         document.getElementById('doctor').innerText = data.doctorName;
         document.getElementById('date').innerText = data.date;
 
         const container = document.getElementById('medicines');
         container.innerHTML = "";
 
-        // Iterate through medicines using the new UI layout
         data.medicines.forEach(med => {
             const div = document.createElement('div');
             div.className = "p-6 border rounded-2xl bg-white shadow-sm mb-6 border-l-4 border-l-blue-500";
 
-            // Progress bar & Status logic
+
             const progressPercent = med.durationDays > 0 ? Math.min((med.daysPassed / med.durationDays) * 100, 100) : 0;
             const statusColor = med.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700';
 
@@ -71,7 +69,7 @@ fetch(`http://localhost:8080/api/v1/prescriptions/${id}`, {
             container.appendChild(div);
         });
 
-        // PDF functionality
+
         document.getElementById('viewPdf').onclick = () => {
             if (data.pdfUrl) {
                 window.open(`http://localhost:8080/${data.pdfUrl}`, '_blank');
@@ -85,9 +83,7 @@ fetch(`http://localhost:8080/api/v1/prescriptions/${id}`, {
         alert("Error loading prescription");
     });
 
-/**
- * Helper function to create expandable detail rows
- */
+
 function createDetailRow(label, value) {
     if (!value || value === 'N/A' || value === 'Not specified') return '';
     return `

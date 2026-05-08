@@ -38,6 +38,7 @@ function addMedicineRow() {
                         <option value="0-0-1">0-0-1 (Nightly)</option>
                         <option value="1-0-0">1-0-0 (Morning)</option>
                         <option value="0-1-0">0-1-0 (Afternoon)</option>
+                        <option value="0-1-1">0-1-1 (Twice)</option>
                     </select>
                 </div>
             </div>
@@ -131,13 +132,14 @@ async function submitPrescription() {
     const prescriptionDate = document.getElementById('prescriptionDate')?.value;
 
     if (!token) {
-        alert("Session expired. Please login again.");
-        window.location.href = "login.html";
+        showStatusModal('error', 'Session Expired', 'Please login again to continue.', () => {
+            window.location.href = "login.html";
+        });
         return;
     }
 
     if (!prescriptionDate) {
-        alert("Please select a Prescription Date.");
+        showStatusModal('warning', 'Missing Date', 'Please select the prescription date.');
         return;
     }
 
@@ -156,7 +158,7 @@ async function submitPrescription() {
         const duration = row.querySelector('.med-duration').value;
         const startDate = row.querySelector('.med-start-date').value;
 
-        // যদি নাম লেখে কিন্তু সাজেশন থেকে সিলেক্ট না করে (ID না থাকে)
+
         if (nameVal.trim() !== "" && !idVal) {
             isValidSelection = false;
         }
@@ -172,12 +174,12 @@ async function submitPrescription() {
     });
 
     if (!isValidSelection) {
-        alert("Please select the medicine from suggestions properly.");
+        showStatusModal('warning', 'Invalid Selection', 'Please select medicines from the suggestions list.');
         return;
     }
 
     if (payload.medicines.length === 0) {
-        alert("Please add at least one valid medicine.");
+        showStatusModal('warning', 'No Medicines', 'Please add at least one valid medicine.');
         return;
     }
 
@@ -192,15 +194,15 @@ async function submitPrescription() {
         });
 
         if (response.ok) {
-            alert("✅ Prescription Saved Successfully!");
-            window.location.href = 'dashboard.html';
+            showStatusModal('success', 'Success!', 'Prescription saved successfully.', () => {
+                window.location.href = 'dashboard.html';
+            });
         } else {
             const err = await response.json();
-            alert("Error: " + (err.message || "Failed to save"));
+            showStatusModal('error', 'Failed to Save', err.message || "An error occurred.");
         }
     } catch (e) {
-        console.error("Submission Error:", e);
-        alert("Failed to connect to server.");
+        showStatusModal('error', 'Server Error', 'Failed to connect to the server.');
     }
 }
 
@@ -227,15 +229,23 @@ async function handlePdfUpload(e) {
         });
 
         if (!response.ok) {
-            const errorData = await response.text();
-            throw new Error(errorData || "Extraction failed");
+            if (response.status === 503) {
+                showStatusModal('error', 'AI Server Busy', 'গুগল এআই সার্ভার এখন ব্যস্ত। দয়া করে ২-৫ মিনিট পর আবার চেষ্টা করুন।');
+            } else if (response.status === 401) {
+                showStatusModal('error', 'Session Expired', 'আপনার সেশন শেষ হয়ে গেছে। দয়া করে আবার লগইন করুন।', () => {
+                    window.location.href = 'login.html';
+                });
+            } else {
+                showStatusModal('error', 'Extraction Failed', 'পিডিএফ থেকে ডেটা বের করা সম্ভব হয়নি। ম্যানুয়ালি চেষ্টা করুন।');
+            }
+            return;
         }
 
         const extractedMedicines = await response.json();
         console.log("Extracted Data:", extractedMedicines);
 
         if (extractedMedicines && extractedMedicines.length > 0) {
-            // UI আপডেট শুরু
+
             const medicineList = document.getElementById('medicine-list');
             medicineList.innerHTML = '';
             medicineCount = 0;
@@ -274,14 +284,58 @@ async function handlePdfUpload(e) {
             document.getElementById('tab-manual').classList.add('bg-white', 'text-blue-600', 'shadow-sm');
             document.getElementById('tab-pdf').classList.remove('bg-white', 'text-blue-600', 'shadow-sm');
 
-            alert(`Found ${extractedMedicines.length} medicines! Please verify.`);
+            //alert(`Found ${extractedMedicines.length} medicines! Please verify.`);
+            showStatusModal('success', 'Extraction Complete', `${extractedMedicines.length}টি ওষুধ পাওয়া গেছে। দয়া করে যাচাই করে নিন।`);
         } else {
             alert("No medicines recognized in this PDF. Try manual entry.");
         }
 
     } catch (error) {
         console.error("❌ Extraction Error:", error);
-        alert("Failed to extract data: " + error.message);
+        // নেটওয়ার্ক বা অন্য কোনো বড় এরর হলে
+        showStatusModal('error', 'Connection Error', 'সার্ভারের সাথে যোগাযোগ করা যাচ্ছে না। আপনার ইন্টারনেট চেক করুন।');
     }
 }
+
+
+function showStatusModal(type, title, message, callback = null) {
+    const modal = document.getElementById('statusModal');
+    const content = document.getElementById('statusModalContent');
+    const iconBg = document.getElementById('modalIconBg');
+    const icon = document.getElementById('modalIcon');
+    const titleEl = document.getElementById('modalTitle');
+    const messageEl = document.getElementById('modalMessage');
+    const actions = document.getElementById('modalActions');
+
+
+    if (type === 'success') {
+        iconBg.className = "w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl";
+        icon.innerText = "✓";
+        actions.innerHTML = `<button id="modalOkBtn" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition">Go to Dashboard</button>`;
+    } else if (type === 'error') {
+        iconBg.className = "w-20 h-20 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl";
+        icon.innerText = "✕";
+        actions.innerHTML = `<button id="modalOkBtn" class="w-full bg-gray-800 text-white py-3 rounded-xl font-bold hover:bg-gray-900 transition">Try Again</button>`;
+    } else if (type === 'warning') {
+        iconBg.className = "w-20 h-20 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl";
+        icon.innerText = "!";
+        actions.innerHTML = `<button id="modalOkBtn" class="w-full bg-yellow-600 text-white py-3 rounded-xl font-bold hover:bg-yellow-700 transition">Got it</button>`;
+    }
+
+    titleEl.innerText = title;
+    messageEl.innerText = message;
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        content.classList.remove('scale-95', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+    }, 10);
+
+    document.getElementById('modalOkBtn').onclick = () => {
+        modal.classList.add('hidden');
+        content.classList.add('scale-95', 'opacity-0');
+        if (callback) callback();
+    };
+}
+
 
